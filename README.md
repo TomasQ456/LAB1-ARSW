@@ -2,7 +2,7 @@
 ### Escuela Colombiana de Ingeniería
 ### Arquitecturas de Software - ARSW
 ## Ejercicio Introducción al paralelismo - Hilos - Caso BlackListSearch
-
+## Integrantes: Tomas Quiceno Ostos, Deisy Guzman
 
 ### Dependencias:
 ####   Lecturas:
