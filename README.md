@@ -22,6 +22,17 @@
 	3. Ejecute y revise la salida por pantalla. 
 	4. Cambie el incio con 'start()' por 'run()'. Cómo cambia la salida?, por qué?.
    
+**Solución Parte I**
+
+Se implementó la clase `CountThread` cuyo `run()` itera e imprime los números del intervalo [A,B] recibido en el constructor. En `CountThreadsMain` se añadió el método `countInThree(int a,int b)` que valida que `b >= a` (lanza `IllegalArgumentException` si no), calcula `total = (b-a)/3` y construye tres `CountThread` con los subintervalos resultantes, arrancándolos con `start()` para que se ejecuten en paralelo. La división del rango en tres partes y el uso de `start()` permite la ejecución concurrente de las tres tareas.
+
+![alt text](img/image.png)
+![alt text](img/image-1.png)
+
+***Resultado hilos iniciados con 'start()'***
+
+![alt text](img/salida1.png)
+
 **Parte II - Ejercicio Black List Search**
 
 
