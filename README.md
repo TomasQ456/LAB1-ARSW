@@ -33,7 +33,18 @@ Se implementó la clase `CountThread` cuyo `run()` itera e imprime los números 
 
 ![alt text](img/salida1.png)
 
+***Resultado hilos iniciados con 'run()'***
+
+![alt text](img/salida2.png)
+
+***Cómo y por qué cambia la salida?***
+
+En el caso de la salida con `start()` podemos notar que se desordenan los números al imprimirse, mientras que en el caso de `run()` sí se imprimen en orden secuencial, esto sucede porque llamar a start() crea y arranca un nuevo hilo gestionado por la JVM; la JVM llama a run() de ese objeto en ese hilo nuevo y la ejecución ocurre concurrentemente respecto al hilo que llamó a start(). En cambio, llamar directamente a run() no crea ningún hilo nuevo: simplemente ejecuta el método run() como una llamada normal en el mismo hilo que hizo la llamada.
+
+Con start() las tres instancias imprimen desde hilos diferentes y el planificador del SO/JVM intercalará las salidas (orden no determinista). Con run() todas las impresiones se ejecutan secuencialmente en el hilo principal, respetando el orden de llamadas y por eso la salida aparece ordenada.
+
 **Parte II - Ejercicio Black List Search**
+
 
 
 Para un software de vigilancia automática de seguridad informática se está desarrollando un componente encargado de validar las direcciones IP en varios miles de listas negras (de host maliciosos) conocidas, y reportar aquellas que existan en al menos cinco de dichas listas. 
