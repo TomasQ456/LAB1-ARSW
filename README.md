@@ -43,8 +43,8 @@ En el caso de la salida con `start()` podemos notar que se desordenan los númer
 
 Con start() las tres instancias imprimen desde hilos diferentes y el planificador del SO/JVM intercalará las salidas (orden no determinista). Con run() todas las impresiones se ejecutan secuencialmente en el hilo principal, respetando el orden de llamadas y por eso la salida aparece ordenada.
 
-**Parte II - Ejercicio Black List Search**
 
+**Parte II - Ejercicio Black List Search**
 
 
 Para un software de vigilancia automática de seguridad informática se está desarrollando un componente encargado de validar las direcciones IP en varios miles de listas negras (de host maliciosos) conocidas, y reportar aquellas que existan en al menos cinco de dichas listas. 
@@ -77,6 +77,31 @@ Para 'refactorizar' este código, y hacer que explote la capacidad multi-núcleo
 	* Dentro del método checkHost Se debe mantener el LOG que informa, antes de retornar el resultado, el número de listas negras revisadas VS. el número de listas negras total (línea 60). Se debe garantizar que dicha información sea verídica bajo el nuevo esquema de procesamiento en paralelo planteado.
 
 	* Se sabe que el HOST 202.24.34.55 está reportado en listas negras de una forma más dispersa, y que el host 212.24.24.55 NO está en ninguna lista negra.
+
+
+**Solución Parte II**
+
+Se paralelizó la validación dividiendo el conjunto de servidores en N subrangos y asignando cada subrango a un hilo BlackListSearchThread. El método checkHost(String ipaddress, int N) valida y ajusta N, crea los hilos con los índices de inicio y fin adecuados, los arranca con start() y espera su finalización con join(). Tras el join se agregan las listas encontradas por cada hilo, se suma el total verificado y se decide el reporte usando el umbral BLACK_LIST_ALARM_COUNT, manteniendo el log que muestra Checked Black Lists: X of Y. La fachada HostBlacklistsDataSourceFacade no se modifica y se usa de forma segura desde múltiples hilos.
+
+***Creación y particionado, arranque-join:*** 
+![alt text](image.png)
+
+***Agregación de resultados y log final:***
+![alt text](image-1.png)
+
+***Lógica del worker (run):***
+![alt text](image-2.png)
+
+***Clase Main usada para pruebas:***
+![alt text](image-3.png)
+
+***Prueba de ejecución***
+
+Validación con la IP 202.24.34.55. y `numThreads = 8`. Las ocurrencias se encuentran distribuidas a lo largo de todo el espacio de servidores, por lo que los hilos realizan la búsqueda exhaustiva en sus respectivos segmentos. Al finalizar, se consolida la información y el log final (`Checked Black Lists: 80000 of 80000`) demuestra que la paralelización abarcó la totalidad de las listas correctamente.
+
+
+![alt text](image-4.png)
+
 
 
 **Parte II.I Para discutir la próxima clase (NO para implementar aún)**

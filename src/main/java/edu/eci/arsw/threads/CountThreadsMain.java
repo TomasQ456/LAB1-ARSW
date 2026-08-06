@@ -26,8 +26,8 @@ public class CountThreadsMain {
         CountThread ct2 = new CountThread(a + total, a + total * 2);
         CountThread ct3 = new CountThread(a + total * 2, b);
 
-        ct1.run();
-        ct2.run();
-        ct3.run();
+        ct1.start();
+        ct2.start();
+        ct3.start();
     }
 }
