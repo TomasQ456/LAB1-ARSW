@@ -26,7 +26,8 @@
 
 Se implementó la clase `CountThread` cuyo `run()` itera e imprime los números del intervalo [A,B] recibido en el constructor. En `CountThreadsMain` se añadió el método `countInThree(int a,int b)` que valida que `b >= a` (lanza `IllegalArgumentException` si no), calcula `total = (b-a)/3` y construye tres `CountThread` con los subintervalos resultantes, arrancándolos con `start()` para que se ejecuten en paralelo. La división del rango en tres partes y el uso de `start()` permite la ejecución concurrente de las tres tareas.
 
-![alt text](img/image.png)
+![alt text](img/imageCountThread.png)
+
 ![alt text](img/image-1.png)
 
 ***Resultado hilos iniciados con 'start()'***
@@ -84,23 +85,27 @@ Para 'refactorizar' este código, y hacer que explote la capacidad multi-núcleo
 Se paralelizó la validación dividiendo el conjunto de servidores en N subrangos y asignando cada subrango a un hilo BlackListSearchThread. El método checkHost(String ipaddress, int N) valida y ajusta N, crea los hilos con los índices de inicio y fin adecuados, los arranca con start() y espera su finalización con join(). Tras el join se agregan las listas encontradas por cada hilo, se suma el total verificado y se decide el reporte usando el umbral BLACK_LIST_ALARM_COUNT, manteniendo el log que muestra Checked Black Lists: X of Y. La fachada HostBlacklistsDataSourceFacade no se modifica y se usa de forma segura desde múltiples hilos.
 
 ***Creación y particionado, arranque-join:*** 
-![alt text](image.png)
+
+![alt text](img/image.png)
 
 ***Agregación de resultados y log final:***
-![alt text](image-1.png)
+
+![alt text](img/image-N.png)
 
 ***Lógica del worker (run):***
-![alt text](image-2.png)
+
+![alt text](img/image-2.png)
 
 ***Clase Main usada para pruebas:***
-![alt text](image-3.png)
+
+![alt text](img/image-3.png)
 
 ***Prueba de ejecución***
 
 Validación con la IP 202.24.34.55. y `numThreads = 8`. Las ocurrencias se encuentran distribuidas a lo largo de todo el espacio de servidores, por lo que los hilos realizan la búsqueda exhaustiva en sus respectivos segmentos. Al finalizar, se consolida la información y el log final (`Checked Black Lists: 80000 of 80000`) demuestra que la paralelización abarcó la totalidad de las listas correctamente.
 
 
-![alt text](image-4.png)
+![alt text](img/image-4.png)
 
 
 
@@ -121,6 +126,68 @@ A partir de lo anterior, implemente la siguiente secuencia de experimentos para 
 Al iniciar el programa ejecute el monitor jVisualVM, y a medida que corran las pruebas, revise y anote el consumo de CPU y de memoria en cada caso. ![](img/jvisualvm.png)
 
 Con lo anterior, y con los tiempos de ejecución dados, haga una gráfica de tiempo de solución vs. número de hilos. Analice y plantee hipótesis con su compañero para las siguientes preguntas (puede tener en cuenta lo reportado por jVisualVM):
+
+
+**Solución Parte III**
+
+Para analizar el impacto del paralelismo en el tiempo de respuesta, se ejecutó una serie de pruebas validando la dirección IP `202.24.34.55` (búsqueda dispersa), midiendo los tiempos de ejecución y monitoreando el consumo de recursos de la máquina virtual con VisualVM.
+
+***Primer caso (1 hilo)***
+
+Monitoreo en VisualLVM
+
+![alt text](img/image-5.png)
+
+Tiempo de ejecución: 249,295 ms
+
+![alt text](img/image-6.png)
+
+***Segundo caso (Tantos como núcleos, 8 hilos)***
+
+Monitoreo en VisualLVM
+
+![alt text](img/image-8.png)
+
+Tiempo de ejecución: 15,268 ms
+
+![alt text](img/image-7.png)
+
+***Tercer caso (Doble de núcleos, 16 hilos)***
+
+Monitoreo en VisualLVM
+
+![alt text](img/image-9.png)
+
+Tiempo de ejecución: 7,715 ms
+
+![alt text](img/image-10.png)
+
+***Cuarto caso (50 hilos)***
+
+Monitoreo en VisualLVM
+
+![alt text](img/image-11.png)
+
+Tiempo de ejecución: 2,573 ms
+
+![alt text](img/image-12.png)
+
+***Quinto caso (100 hilos)***
+
+Monitoreo en VisualLVM
+
+![alt text](img/image-13.png)
+
+Tiempo de ejecución: 1,346 ms
+
+![alt text](img/image-14.png)
+
+***Gráfica tomando los hilos y tiempos de cada caso***
+
+![alt text](img/image-15.png)
+
+La gráfica muestra el impacto del paralelismo en el rendimiento del programa. Se observa una reducción drástica en el tiempo de ejecución al pasar de 1 a 8 hilos, momento en el que se aprovechan al máximo los núcleos físicos del procesador. A partir de los 16 hilos, la curva comienza a aplanarse de forma significativa. Aunque el tiempo total sigue disminuyendo en las pruebas con 50 y 100 hilos, la mejora se vuelve cada vez más marginal. Este comportamiento evidencia visualmente el principio de la Ley de Amdahl: la mejora del rendimiento tiende a un límite asintótico debido a la sobrecarga (overhead) que genera la creación, el cambio de contexto y la gestión concurrente de múltiples hilos por parte del sistema operativo.
+
 
 **Parte IV - Ejercicio Black List Search**
 
