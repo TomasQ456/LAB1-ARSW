@@ -7,17 +7,26 @@ package edu.eci.arsw.blacklistvalidator;
 
 import java.util.List;
 
-/**
- *
- * @author hcadavid
- */
 public class Main {
     
-    public static void main(String a[]){
-        HostBlackListsValidator hblv=new HostBlackListsValidator();
-        List<Integer> blackListOcurrences=hblv.checkHost("200.24.34.55");
-        System.out.println("The host was found in the following blacklists:"+blackListOcurrences);
+    public static void main(String a[]) throws InterruptedException {
+
+        
+        HostBlackListsValidator hblv = new HostBlackListsValidator();
+        
+        int numThreads = 100;
+        
+        System.out.println("Iniciando validación con " + numThreads + " hilos");
+        
+        long startTime = System.currentTimeMillis();
+        
+        List<Integer> blackListOcurrences = hblv.checkHost("202.24.34.55", numThreads);
+        
+        long endTime = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
+        
+        System.out.println("The host was found en las listas: " + blackListOcurrences);
+        System.out.println("Tiempo total de ejecución: " + totalTime + " milisegundos.");
         
     }
-    
 }
