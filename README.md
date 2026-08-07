@@ -200,4 +200,53 @@ La gráfica muestra el impacto del paralelismo en el rendimiento del programa. S
 3. De acuerdo con lo anterior, si para este problema en lugar de 100 hilos en una sola CPU se pudiera usar 1 hilo en cada una de 100 máquinas hipotéticas, la ley de Amdahls se aplicaría mejor?. Si en lugar de esto se usaran c hilos en 100/c máquinas distribuidas (siendo c es el número de núcleos de dichas máquinas), se mejoraría?. Explique su respuesta.
 
 
+**Solución Parte IV**
+
+Para responder estas preguntas se graficó la ley de Amdahl en GeoGebra con `P = 0.95`, junto con la curva de eficiencia `E(n) = S(n)/n`:
+
+![Ley de Amdahl en GeoGebra](img/geogebra.png)
+
+| Elemento de la gráfica | Significado |
+| --- | --- |
+| Techo (línea negra) = 20 | Límite `1/(1−P)`. El *speedup* nunca lo supera, por más hilos que se usen. |
+| Curva de *speedup* (roja) | Sube rápido al inicio y luego se aplana pegándose al techo. |
+| Punto `R = (8, 5.93)` | *Speedup* teórico alcanzado con los 8 núcleos de la máquina. |
+| Punto `Enucleos = (8, 0.74)` | Eficiencia con 8 hilos (74%). |
+| Curva de eficiencia (gris) | Empieza en 100% y cae continuamente al agregar hilos. |
+
+***1. ¿Por qué el mejor desempeño no se logra con los 500 hilos?***
+
+Porque en la fórmula _n_ representa unidades que corren en paralelo **de verdad**, no simplemente hilos lanzados. La máquina tiene solo 8 núcleos, así que el *speedup* real se topa en `R ≈ 5.93×`. Pasados esos 8 núcleos, los 492 hilos restantes no corren en paralelo: se turnan la CPU por *time-slicing* y solo agregan *overhead* (cambios de contexto, contención de memoria y caché).
+
+Además, la curva ya está pegada al techo de 20, un límite infranqueable impuesto por la fracción serial `(1−P) = 0.05`. Por eso más hilos no mejoran nada: el paralelismo real está topado por el hardware y el modelo por el techo.
+
+***¿Cómo se compara este desempeño cuando se usan 200?***
+
+Casi idéntico. Tanto 200 como 500 caen en la zona plana de la curva, así que sus *speedups* teóricos son prácticamente iguales:
+
+| Hilos | *Speedup* teórico `S(n)` con P = 0.95 |
+| --- | --- |
+| 8 | ≈ 5.93 |
+| 200 | ≈ 18.3 |
+| 500 | ≈ 19.3 |
+
+Apenas un +5% pese a más que duplicar los hilos: son rendimientos decrecientes puros. Y como en la práctica los 300 hilos adicionales solo suman sobrecosto de conmutación sin aportar paralelismo real, 500 hilos rinde igual o incluso peor que 200: se paga más *overhead* por una mejora teórica que ni siquiera aparece. La curva de eficiencia lo confirma: con 8 hilos ya está en 74% y hacia los cientos se desploma por debajo del 10%, es decir, cada hilo extra aporta cada vez menos.
+
+***2. Tantos hilos como núcleos vs. el doble de núcleos***
+
+Usar tantos hilos como núcleos (8 hilos en 8 núcleos) es el punto óptimo para este problema, que es *CPU-bound*: cada hilo tiene su propio núcleo, hay paralelismo real y el *overhead* de conmutación es mínimo. Es justo el punto `R` de la gráfica, donde se alcanza el máximo *speedup* práctico.
+
+Usar el doble (16 hilos en 8 núcleos) hace que dos hilos compitan por cada núcleo. Como los núcleos ya estaban saturados con 8 hilos, los 8 adicionales no aportan paralelismo real: solo agregan cambios de contexto. Por eso el desempeño no mejora y suele quedar igual o levemente peor.
+
+***3. 100 hilos en una CPU vs. 1 hilo en 100 máquinas***
+
+Sí, la ley se aplicaría mejor. El problema con 100 hilos en una sola CPU es que esa máquina tiene pocos núcleos (8), así que los 100 hilos no corren en paralelo: se turnan la CPU y la mayoría solo agrega *overhead*. En cambio, con 100 máquinas de 1 hilo cada una hay 100 procesadores realmente independientes, cada uno trabajando de verdad al mismo tiempo. Ahí el _n_ de la fórmula sí corresponde a paralelismo real, que es justo lo que Amdahl asume. Por eso la ley se cumple mucho mejor en este escenario que apilando hilos en una CPU que no da abasto.
+
+***¿Y con c hilos en 100/c máquinas?***
+
+Sí, y de hecho es la forma más lógica de organizarlo. Si cada máquina tiene _c_ núcleos, lo natural es ponerle _c_ hilos, porque ese es justamente el punto óptimo de la pregunta 2: cada hilo tiene su propio núcleo y ninguno queda peleando por CPU. Repartiendo así, con `100/c` máquinas de _c_ hilos cada una, seguimos teniendo las mismas ~100 unidades de procesamiento trabajando en paralelo, pero ahora distribuidas de forma que ninguna máquina queda ni sobrecargada ni desaprovechada.
+
+La diferencia se ve mejor comparando los dos escenarios: en el primero teníamos 100 máquinas usando solo 1 de sus núcleos, lo que deja el resto del hardware ocioso; en el segundo tenemos menos máquinas, pero cada una con todos sus núcleos ocupados. Ambos arreglos dan alrededor de 100 hilos reales corriendo al tiempo, solo que el segundo aprovecha mucho mejor los recursos disponibles. Por eso es la manera más eficiente de montarlo, y es exactamente cómo funcionan los clústeres reales: varias máquinas, cada una con varios núcleos trabajando a pleno.
+	,
+
 
